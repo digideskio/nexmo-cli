@@ -138,11 +138,12 @@ API Secret: ${ini.credentials.api_secret}`
     };
   }
 
-  applicationCreate(flags) {
+  applicationCreate(client, flags) {
     return (error, response) => {
       this.validator.response(error, response);
       this.emitter.list(`Application created: ${response.id}`, response);
       this._writeKey(flags.keyfile, response.keys.private_key);
+      this._writeJwt(flags.jwt, client, response.id, response.keys.private_key);
     };
   }
 
@@ -187,7 +188,7 @@ API Secret: ${ini.credentials.api_secret}`
           this.emitter.warn(error.message);
           this._promptKey(private_key);
         } else {
-          this.emitter.log(`Private Key saved to: ${keyfile}`);
+          this.emitter.log(`[Private Key]\nSaved to "${keyfile}"`);
         }
       });
     } else {
@@ -195,10 +196,15 @@ API Secret: ${ini.credentials.api_secret}`
     }
   }
 
+  _writeJwt(createJwt, client, appId, privateKey) {
+    if (createJwt) {
+      let jwt = client.credentials.generateJwt(appId, privateKey);
+      this.emitter.log(`[JWT]\n${colors.red.bgWhite(jwt)}\n`);
+    }
+  }
+
   _promptKey(private_key) {
-    this.emitter.log('\nPrivate Key:\n');
-    this.emitter.log(colors.red.bgWhite(`${private_key}\n`));
-    this.emitter.log('WARNING: You should save this key somewhere safe and secure now, it will not be provided again.');
+    this.emitter.log(`\n[Private Key]\n${colors.red.bgWhite(private_key)}\nWARNING: You should save this key somewhere safe and secure now, it will not be provided again.\n`);
   }
 
   // sending messages
@@ -209,6 +215,13 @@ API Secret: ${ini.credentials.api_secret}`
     this.emitter.log(`Message sent to:   ${message.to}
 Remaining balance: ${message['remaining-balance']} EUR
 Message price:     ${message['message-price']} EUR`);
+  }
+
+  // JWT creation
+
+  createJWT(error, response) {
+    this.validator.response(error, response);
+    this.emitter.log(response);
   }
 }
 

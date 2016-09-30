@@ -1,4 +1,5 @@
 import readline from 'readline';
+import fs from 'fs';
 
 class Request {
   constructor(config, client, response) {
@@ -126,7 +127,7 @@ class Request {
     if (flags.answer_method) { options.answer_method = flags.answer_method; }
     if (flags.event_method) { options.event_method = flags.event_method; }
 
-    this.client.instance().app.create(name, flags.type, answer_url, event_url, options, this.response.applicationCreate(flags));
+    this.client.instance().app.create(name, flags.type, answer_url, event_url, options, this.response.applicationCreate(this.client.instance(), flags));
   }
 
   applicationShow(app_id) {
@@ -237,6 +238,15 @@ class Request {
   sendSms(to, text, flags) {
     confirm('This operation will charge your account.', this.response.emitter, flags, () => {
       this.client.instance().message.sendSms(flags.from, to, text.join(' '), this.response.sendSms.bind(this.response));
+    });
+  }
+
+  // JWT creation
+  createJWT(appId, privateKeyFilename) {
+    fs.readFile(privateKeyFilename, (error, key) => {
+      if (error) { this.response.createJWT(error, null); }
+      let jwt = this.client.instance().credentials.generateJwt(appId, key);
+      this.response.createJWT(null, jwt);
     });
   }
 }

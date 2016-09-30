@@ -223,6 +223,7 @@ commander
   .option('--answer_method <answer_method>', 'the HTTP method to use for the answer_url (defaults to GET)')
   .option('--event_method <event_method>', 'the HTTP method to use for the event_url (defaults to GET)')
   .option('--keyfile <keyfile>', 'the file to save your private key to')
+  .option('--jwt', 'automatically generate a JSON Web Token for this app as well')
   .on('--help', () => {
     emitter.log('  Examples:');
     emitter.log(' ');
@@ -515,6 +516,19 @@ commander
   .option('-f, --from <from...>', 'the number or name to send the SMS message from (defaults to "Nexmo CLI")', 'Nexmo CLI')
   .description('Send an SMS')
   .action(request.sendSms.bind(request));
+
+// JWT generation
+commander
+  .command('jwt:create <app_id> <keyfile>')
+  .description('Create a JSON Web Token for an Application')
+  .alias('jc')
+  .on('--help', () => {
+    emitter.log('  Examples:');
+    emitter.log(' ');
+    emitter.log('    $ nexmo jwt:create asdasdas-asdd-2344-2344-asdasdasd345 path/to/private.key');
+    emitter.log(' ');
+  })
+  .action(request.createJWT.bind(request));
 
 // catch unknown commands
 commander
